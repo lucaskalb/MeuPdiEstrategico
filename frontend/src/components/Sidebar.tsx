@@ -6,7 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
-  isOpen?: boolean;
+  'data-isopen'?: boolean;
 }
 
 interface SidebarProps {
@@ -23,7 +23,7 @@ const SidebarContainer = styled.div<ThemedProps>`
   width: 280px;
   background-color: ${({ theme }) => theme === 'dark' ? '#242424' : '#ffffff'};
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-  transform: translateX(${({ isOpen }) => (isOpen ? '0' : '-100%')});
+  transform: translateX(${({ 'data-isopen': isOpen }) => (isOpen ? '0' : '-100%')});
   transition: transform 0.3s ease;
   z-index: 1000;
   display: flex;
@@ -37,8 +37,8 @@ const Overlay = styled.div<ThemedProps>`
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  opacity: ${({ isOpen }) => (isOpen ? '1' : '0')};
-  visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
+  opacity: ${({ 'data-isopen': isOpen }) => (isOpen ? '1' : '0')};
+  visibility: ${({ 'data-isopen': isOpen }) => (isOpen ? 'visible' : 'hidden')};
   transition: all 0.3s ease;
   z-index: 999;
 `;
@@ -109,8 +109,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userNickname }) => {
 
   return (
     <>
-      <Overlay theme={theme} isOpen={isOpen} onClick={onClose} />
-      <SidebarContainer theme={theme} isOpen={isOpen}>
+      <Overlay theme={theme} data-isopen={isOpen} onClick={onClose} />
+      <SidebarContainer theme={theme} data-isopen={isOpen}>
         <UserSection theme={theme}>
           <Avatar theme={theme}>
             {userNickname.charAt(0).toUpperCase()}

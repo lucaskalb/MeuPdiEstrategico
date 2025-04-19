@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 import { FiSun, FiMoon } from 'react-icons/fi';
+import { authService } from '../services/auth.service';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
@@ -164,10 +165,6 @@ const LinkText = styled(Link)<ThemedProps>`
   }
 `;
 
-interface LoginResponse {
-  token: string;
-}
-
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
@@ -183,9 +180,7 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
-    // Se já estiver autenticado, redireciona para o dashboard
-    const token = localStorage.getItem('authToken');
-    if (token) {
+    if (authService.isAuthenticated()) {
       navigate('/', { replace: true });
     }
   }, [navigate]);
@@ -196,32 +191,8 @@ const Login: React.FC = () => {
     setErrors({ email: '', password: '', submit: '' });
 
     try {
-      const response = await fetch('http://localhost:3000/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 422) {
-          setErrors(prev => ({
-            ...prev,
-            submit: 'Email ou senha inválidos',
-          }));
-        } else {
-          throw new Error(data.error || 'Erro ao fazer login');
-        }
-        return;
-      }
-
-      // Armazena o token no localStorage
-      localStorage.setItem('authToken', data.token);
-
-      // Redireciona para o dashboard
+      const response = await authService.login(formData);
+      localStorage.setItem('authToken', response.token);
       navigate('/', { replace: true });
     } catch (error) {
       if (error instanceof Error) {
