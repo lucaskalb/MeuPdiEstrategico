@@ -1,9 +1,10 @@
 import axios from 'axios'
-import { useAuth } from '../contexts/AuthContext'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
-  withCredentials: true,
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
 
 // Interceptor para adicionar token em todas as requisições

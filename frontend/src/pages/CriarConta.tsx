@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { FiSun, FiMoon, FiArrowLeft } from 'react-icons/fi';
+import { FiSun, FiMoon } from 'react-icons/fi';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
 }
 
-interface FormData {
+interface FormValues {
   nickname: string;
   email: string;
   password: string;
@@ -223,7 +223,7 @@ const LinkText = styled(Link)<ThemedProps>`
 const CriarConta: React.FC = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormValues>({
     nickname: '',
     email: '',
     password: '',
@@ -236,30 +236,26 @@ const CriarConta: React.FC = () => {
   const validateForm = () => {
     const newErrors: ErrorState = { ...initialErrorState };
 
-    // Validação do nickname
     if (formData.nickname.length < 2) {
       newErrors.nickname = 'O nome deve ter pelo menos 2 caracteres';
     }
 
-    // Validação do email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
 
-    // Validação da senha
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(formData.password)) {
       newErrors.password = 'A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial';
     }
 
-    // Validação da confirmação de senha
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'As senhas não coincidem';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.values(newErrors).every(error => !error);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -289,11 +285,9 @@ const CriarConta: React.FC = () => {
         throw new Error(data.error || 'Erro ao criar conta');
       }
 
-      // Mostrar mensagem de sucesso antes de redirecionar
       setErrors(initialErrorState);
       setSuccessMessage('Conta criada com sucesso! Redirecionando para o login...');
       
-      // Redirecionar após um breve delay para mostrar a mensagem de sucesso
       setTimeout(() => {
         navigate('/login');
       }, 2000);
