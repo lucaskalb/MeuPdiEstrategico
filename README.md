@@ -40,8 +40,8 @@ meu-pdi-estrategico/
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/meu-pdi-estrategico.git
-cd meu-pdi-estrategico
+git clone https://github.com/seu-usuario/MeuPdiEstrategico.git
+cd MeuPdiEstrategico
 ```
 
 2. Instale o frontend:
@@ -108,7 +108,7 @@ O frontend estará disponível em `http://localhost:3000` e o backend em `http:/
 
 ## Contribuição
 
-Por favor, leia o [CONTRIBUTING.md](CONTRIBUTING.md) para detalhes sobre como contribuir com o projeto.
+Por favor, leia o [CONTRIBUTING.md](docs/CONTRIBUTING.md) para detalhes sobre como contribuir com o projeto.
 
 ## Licença
 
