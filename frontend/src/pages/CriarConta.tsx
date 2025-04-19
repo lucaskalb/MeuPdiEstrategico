@@ -41,10 +41,6 @@ const Container = styled.div<ThemedProps>`
   background-color: ${({ theme }) => theme === 'dark' ? '#1a1a1a' : '#f8f9fa'};
   color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
   transition: all 0.3s ease;
-
-  @media (max-width: 768px) {
-    padding: 0;
-  }
 `;
 
 const Card = styled.div<ThemedProps>`
@@ -59,15 +55,6 @@ const Card = styled.div<ThemedProps>`
       : '0 8px 32px rgba(0, 0, 0, 0.1)'
   };
   transition: all 0.3s ease;
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-    min-height: 100vh;
-    border-radius: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
 `;
 
 const Title = styled.h1<ThemedProps>`
@@ -180,33 +167,6 @@ const ThemeToggle = styled.button<ThemedProps>`
   }
 `;
 
-const BackButton = styled.button<ThemedProps>`
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  background: transparent;
-  border: none;
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-  z-index: 10;
-
-  &:hover {
-    background-color: ${({ theme }) => theme === 'dark' ? '#333' : '#e2e8f0'};
-  }
-
-  @media (max-width: 768px) {
-    top: 1.5rem;
-    left: 1.5rem;
-  }
-`;
-
 const LinkText = styled(Link)<ThemedProps>`
   color: #3b82f6;
   text-decoration: none;
@@ -309,14 +269,6 @@ const CriarConta: React.FC = () => {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const clearErrors = () => {
-    setErrors(initialErrorState);
-  };
-
-  const handleVoltar = () => {
-    navigate('/login');
   };
 
   return (
