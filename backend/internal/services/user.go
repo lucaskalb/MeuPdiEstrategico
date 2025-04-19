@@ -30,7 +30,6 @@ func NewUserService(db *gorm.DB) *UserService {
 }
 
 func (s *UserService) validateEmail(email string) error {
-	// Expressão regular para validar email
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(email) {
 		return ErrInvalidEmail
@@ -100,7 +99,6 @@ func (s *UserService) CreateUser(email, password, nickname string) (*models.User
 		return nil, err
 	}
 
-	// Verificar se usuário já existe
 	var existingUser models.User
 	result := s.db.Where("email = ? AND activated", email).First(&existingUser)
 	if result.Error == nil {
@@ -110,13 +108,11 @@ func (s *UserService) CreateUser(email, password, nickname string) (*models.User
 		return nil, result.Error
 	}
 
-	// Hash da senha
 	hashedPassword, err := s.hashPassword(password)
 	if err != nil {
 		return nil, err
 	}
 
-	// Criar usuário
 	user := &models.User{
 		Email:     email,
 		Password:  hashedPassword,

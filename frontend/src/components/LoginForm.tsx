@@ -19,7 +19,6 @@ export const LoginForm: React.FC = () => {
 
     try {
       await login(email, password)
-      // Redirecionar para a página que tentou acessar ou para a home
       const from = (location.state as any)?.from?.pathname || '/'
       navigate(from, { replace: true })
     } catch (err) {

@@ -14,16 +14,9 @@ CREATE TABLE public.user (
     account_locked_until TIMESTAMP WITH TIME ZONE
 );
 
--- Índice único para email + deleted_at
-CREATE UNIQUE INDEX idx_user_email_deleted ON public.user (email, deleted_at);
-
--- Índice para busca por nickname
-CREATE INDEX idx_user_nickname ON public.user (nickname);
-
--- Índice para busca por email
+CREATE UNIQUE INDEX idx_user_email_activated ON public.user (email, activated);
 CREATE INDEX idx_user_email ON public.user (email);
 
--- Trigger para atualizar updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN

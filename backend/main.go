@@ -24,9 +24,7 @@ func loadEnv() error {
 		env = "development"
 	}
 
-	// Tenta carregar o arquivo .env específico do ambiente
 	if err := godotenv.Load(fmt.Sprintf(".env.%s", env)); err != nil {
-		// Se não encontrar, tenta carregar o .env padrão
 		if err := godotenv.Load(); err != nil {
 			return fmt.Errorf("erro ao carregar arquivo .env: %v", err)
 		}
@@ -35,7 +33,6 @@ func loadEnv() error {
 }
 
 func setupDatabase() (*gorm.DB, error) {
-	// Configurar logger do GORM
 	gormLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -46,7 +43,6 @@ func setupDatabase() (*gorm.DB, error) {
 		},
 	)
 
-	// Construir DSN a partir das variáveis de ambiente
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -57,12 +53,9 @@ func setupDatabase() (*gorm.DB, error) {
 		os.Getenv("DB_SSL_MODE"),
 	)
 
-	// Configurar conexão com o banco de dados
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: gormLogger,
-		// Configurações de pool de conexões
 		PrepareStmt: true,
-		// Timeout para operações
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -72,18 +65,15 @@ func setupDatabase() (*gorm.DB, error) {
 		return nil, fmt.Errorf("erro ao conectar com o banco de dados: %v", err)
 	}
 
-	// Configurar pool de conexões
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao obter conexão SQL: %v", err)
 	}
 
-	// Configurar pool de conexões
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	// Migrar esquema
 	if err := db.AutoMigrate(&models.User{}); err != nil {
 		return nil, fmt.Errorf("erro ao migrar esquema: %v", err)
 	}
@@ -93,19 +83,16 @@ func setupDatabase() (*gorm.DB, error) {
 }
 
 func main() {
-	// Carregar variáveis de ambiente
 	if err := loadEnv(); err != nil {
 		log.Fatalf("Erro ao carregar variáveis de ambiente: %v", err)
 	}
 
-	// Configurar aplicação Fiber
 	app := fiber.New(fiber.Config{
 		AppName:      "Meu PDI Estratégico",
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	})
 
-	// Configurar CORS
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
@@ -114,19 +101,15 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Configurar banco de dados
 	db, err := setupDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Inicializar serviços
 	userService := services.NewUserService(db)
 
-	// Configurar rotas
 	routes.SetupUserRoutes(app, userService)
 
-	// Iniciar servidor
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"

@@ -44,10 +44,10 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		"user_id":  user.ID,
 		"email":    user.Email,
 		"nickname": user.Nickname,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token válido por 24 horas
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte("seu-segredo-super-secreto")) // Em produção, use uma variável de ambiente
+	tokenString, err := token.SignedString([]byte("seu-segredo-super-secreto"))
 	if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Erro ao gerar token",

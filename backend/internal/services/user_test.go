@@ -14,7 +14,6 @@ func setupTestDB() *gorm.DB {
 		panic("failed to connect database")
 	}
 
-	// Migrate the schema
 	db.AutoMigrate(&models.User{})
 
 	return db
@@ -96,7 +95,6 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 	db := setupTestDB()
 	service := NewUserService(db)
 
-	// Criar um usuário para teste
 	_, err := service.CreateUser("teste@exemplo.com", "Senha@123", "teste")
 	if err != nil {
 		t.Fatalf("Erro ao criar usuário para teste: %v", err)
