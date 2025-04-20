@@ -4,11 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { FiPlus } from 'react-icons/fi';
 import PDICard from '../components/PDICard';
+import Topbar from '../components/Topbar';
+import Sidebar from '../components/Sidebar';
 import api from '../utils/axios';
-
-interface ThemedProps {
-  theme: 'light' | 'dark';
-}
 
 interface PDI {
   id: string;
@@ -17,11 +15,16 @@ interface PDI {
   created_at: string;
 }
 
-const Container = styled.div<ThemedProps>`
+const Container = styled.div`
   min-height: 100vh;
   padding: 2rem;
-  background-color: ${({ theme }) => theme === 'dark' ? '#1a1a1a' : '#f8f9fa'};
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const Content = styled.div`
+  margin-top: 80px;
+  padding: 0 1rem;
 `;
 
 const Header = styled.div`
@@ -31,18 +34,18 @@ const Header = styled.div`
   margin-bottom: 2rem;
 `;
 
-const Title = styled.h1<ThemedProps>`
+const Title = styled.h1`
   font-size: 2rem;
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
+  color: ${({ theme }) => theme.colors.text};
   font-weight: 600;
 `;
 
-const CreateButton = styled.button<ThemedProps>`
+const CreateButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   border-radius: 8px;
@@ -52,11 +55,11 @@ const CreateButton = styled.button<ThemedProps>`
   transition: all 0.2s;
 
   &:hover {
-    background-color: #2563eb;
+    opacity: 0.9;
   }
 
   &:disabled {
-    background-color: ${({ theme }) => theme === 'dark' ? '#4b5563' : '#cbd5e0'};
+    background-color: ${({ theme }) => theme.colors.secondary};
     cursor: not-allowed;
   }
 `;
@@ -67,30 +70,26 @@ const Grid = styled.div`
   gap: 1.5rem;
 `;
 
-const EmptyState = styled.div<ThemedProps>`
+const EmptyState = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 4rem 2rem;
-  background: ${({ theme }) => theme === 'dark' ? '#242424' : '#ffffff'};
+  background: ${({ theme }) => theme.colors.background};
   border-radius: 16px;
-  box-shadow: ${({ theme }) => 
-    theme === 'dark' 
-      ? '0 8px 32px rgba(0, 0, 0, 0.2)' 
-      : '0 8px 32px rgba(0, 0, 0, 0.1)'
-  };
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 `;
 
-const EmptyStateTitle = styled.h2<ThemedProps>`
+const EmptyStateTitle = styled.h2`
   font-size: 1.5rem;
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 1rem;
 `;
 
-const EmptyStateText = styled.p<ThemedProps>`
-  color: ${({ theme }) => theme === 'dark' ? '#a0aec0' : '#4a5568'};
+const EmptyStateText = styled.p`
+  color: ${({ theme }) => theme.colors.secondary};
   margin-bottom: 2rem;
 `;
 
@@ -99,76 +98,87 @@ const Dashboard: React.FC = () => {
   const { theme } = useTheme();
   const [pdis, setPdis] = useState<PDI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const userNickname = localStorage.getItem('userNickname') || 'Usuário';
 
   useEffect(() => {
-    const fetchPDIs = async () => {
-      try {
-        const response = await api.get('/api/pdis');
-        setPdis(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar PDIs:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPDIs();
   }, []);
 
-  const handleCreateFirstPDI = async () => {
-    setIsCreating(true);
+  const fetchPDIs = async () => {
+    try {
+      const response = await api.get('/api/pdis');
+      setPdis(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar PDIs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreatePDI = async () => {
     try {
       const response = await api.post('/api/pdis', {
-        name: 'Meu primeiro PDI',
+        name: 'Novo PDI',
         status: 'DRAFT'
       });
       navigate(`/pdi/${response.data.id}/chat`);
     } catch (error) {
       console.error('Erro ao criar PDI:', error);
-    } finally {
-      setIsCreating(false);
     }
   };
 
+  const handleAvatarClick = () => {
+    setIsSidebarOpen(true);
+  };
+
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <Container>
+        <Topbar onMenuClick={handleAvatarClick} userNickname={userNickname} />
+        <Content>
+          <Header>
+            <Title>Meus PDIs</Title>
+            <CreateButton disabled>
+              <FiPlus size={20} />
+              Carregando...
+            </CreateButton>
+          </Header>
+        </Content>
+      </Container>
+    );
   }
 
   return (
-    <Container theme={theme}>
-      <Header>
-        <Title theme={theme}>Meus PDIs</Title>
-        {pdis.length > 0 && (
-          <CreateButton theme={theme} onClick={() => navigate('/pdi/new')}>
-            <FiPlus /> Novo PDI
-          </CreateButton>
+    <Container>
+      <Topbar onMenuClick={handleAvatarClick} userNickname={userNickname} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} userNickname={userNickname} />
+      <Content>
+        {pdis.length === 0 ? (
+          <EmptyState>
+            <EmptyStateTitle>Nenhum PDI encontrado</EmptyStateTitle>
+            <EmptyStateText>
+              Crie seu primeiro PDI para começar a planejar seu desenvolvimento profissional.
+            </EmptyStateText>
+            <CreateButton onClick={handleCreatePDI}>
+              <FiPlus size={20} />
+              Criar Primeiro PDI
+            </CreateButton>
+          </EmptyState>
+        ) : (
+          <Grid>
+            {pdis.map((pdi) => (
+              <PDICard
+                key={pdi.id}
+                id={pdi.id}
+                name={pdi.name}
+                status={pdi.status}
+                createdAt={pdi.created_at}
+              />
+            ))}
+          </Grid>
         )}
-      </Header>
-
-      {pdis.length === 0 ? (
-        <EmptyState theme={theme}>
-          <EmptyStateTitle theme={theme}>Bem-vindo ao Meu PDI Estratégico!</EmptyStateTitle>
-          <EmptyStateText theme={theme}>
-            Você ainda não tem nenhum PDI. Clique no botão abaixo para criar seu primeiro plano de desenvolvimento individual.
-          </EmptyStateText>
-          <CreateButton theme={theme} onClick={handleCreateFirstPDI} disabled={isCreating}>
-            <FiPlus /> Criar meu primeiro PDI
-          </CreateButton>
-        </EmptyState>
-      ) : (
-        <Grid>
-          {pdis.map((pdi) => (
-            <PDICard
-              key={pdi.id}
-              id={pdi.id}
-              name={pdi.name}
-              status={pdi.status}
-              createdAt={pdi.created_at}
-            />
-          ))}
-        </Grid>
-      )}
+      </Content>
     </Container>
   );
 };

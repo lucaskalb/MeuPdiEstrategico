@@ -1,18 +1,32 @@
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
 import { AuthProvider } from './contexts/AuthContext';
-import { AppRoutes } from './routes';
+import { ThemeContextProvider, useTheme } from './contexts/ThemeContext';
+import GlobalStyle from './styles/global';
+import { lightTheme, darkTheme } from './styles/theme';
+import AppRoutes from './routes';
 
-function App() {
+const AppContent: React.FC = () => {
+  const { theme } = useTheme();
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <GlobalStyle />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </ThemeProvider>
   );
-}
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <ThemeContextProvider>
+        <AppContent />
+      </ThemeContextProvider>
+    </Router>
+  );
+};
 
 export default App;

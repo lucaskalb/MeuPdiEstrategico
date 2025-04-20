@@ -37,7 +37,6 @@ const Container = styled.div<ThemedProps>`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
   background-color: ${({ theme }) => theme === 'dark' ? '#1a1a1a' : '#f8f9fa'};
   color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
   transition: all 0.3s ease;
@@ -54,7 +53,19 @@ const Card = styled.div<ThemedProps>`
       ? '0 8px 32px rgba(0, 0, 0, 0.2)' 
       : '0 8px 32px rgba(0, 0, 0, 0.1)'
   };
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   transition: all 0.3s ease;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    min-height: 100vh;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 2rem 1rem;
+  }
 `;
 
 const Title = styled.h1<ThemedProps>`
@@ -63,12 +74,21 @@ const Title = styled.h1<ThemedProps>`
   margin-bottom: 2rem;
   text-align: center;
   font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    gap: 1.25rem;
+  }
 `;
 
 const InputGroup = styled.div`
@@ -101,6 +121,11 @@ const Input = styled.input<ThemedProps>`
 
   &::placeholder {
     color: ${({ theme }) => theme === 'dark' ? '#666' : '#a0aec0'};
+  }
+
+  @media (max-width: 768px) {
+    font-size: 16px; /* Evita zoom no iOS */
+    padding: 0.75rem;
   }
 `;
 
@@ -144,6 +169,11 @@ const Button = styled.button<ThemedProps>`
     cursor: not-allowed;
     transform: none;
   }
+
+  @media (max-width: 768px) {
+    padding: 0.875rem;
+    margin-top: 0.5rem;
+  }
 `;
 
 const ThemeToggle = styled.button<ThemedProps>`
@@ -161,9 +191,15 @@ const ThemeToggle = styled.button<ThemedProps>`
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s;
+  z-index: 10;
 
   &:hover {
     background-color: ${({ theme }) => theme === 'dark' ? '#333' : '#e2e8f0'};
+  }
+
+  @media (max-width: 768px) {
+    top: 0.5rem;
+    right: 0.5rem;
   }
 `;
 
@@ -177,6 +213,10 @@ const LinkText = styled(Link)<ThemedProps>`
 
   &:hover {
     text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 0.75rem;
   }
 `;
 

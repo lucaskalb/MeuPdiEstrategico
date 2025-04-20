@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { FiLogOut } from 'react-icons/fi';
+import { FiLogOut, FiSun, FiMoon } from 'react-icons/fi';
 import { useTheme } from '../hooks/useTheme';
 
 interface ThemedProps {
@@ -78,9 +78,12 @@ const MenuContent = styled.div`
 const Footer = styled.div<ThemedProps>`
   padding: 1rem;
   border-top: 1px solid ${({ theme }) => theme === 'dark' ? '#333' : '#e2e8f0'};
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
-const LogoutButton = styled.button<ThemedProps>`
+const MenuButton = styled.button<ThemedProps>`
   width: 100%;
   padding: 0.75rem;
   display: flex;
@@ -92,6 +95,7 @@ const LogoutButton = styled.button<ThemedProps>`
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 8px;
+  font-size: 1rem;
 
   &:hover {
     background-color: ${({ theme }) => theme === 'dark' ? '#333' : '#e2e8f0'};
@@ -100,7 +104,7 @@ const LogoutButton = styled.button<ThemedProps>`
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userNickname }) => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -123,10 +127,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userNickname }) => {
         </MenuContent>
 
         <Footer theme={theme}>
-          <LogoutButton theme={theme} onClick={handleLogout}>
+          <MenuButton theme={theme} onClick={toggleTheme}>
+            {theme === 'dark' ? (
+              <>
+                <FiSun size={20} />
+                Modo Claro
+              </>
+            ) : (
+              <>
+                <FiMoon size={20} />
+                Modo Escuro
+              </>
+            )}
+          </MenuButton>
+          <MenuButton theme={theme} onClick={handleLogout}>
             <FiLogOut size={20} />
             Sair
-          </LogoutButton>
+          </MenuButton>
         </Footer>
       </SidebarContainer>
     </>

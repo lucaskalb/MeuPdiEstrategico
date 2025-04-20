@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../services/auth.service'
 import type { LoginRequest, RegisterRequest } from '../types/auth'
 
@@ -25,22 +25,25 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Verifica se existe token no localStorage ao inicializar
     return !!authService.getToken()
   })
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    // Se não estiver autenticado e não tiver token, redireciona para login
-    if (!isAuthenticated && !authService.getToken()) {
+    const token = authService.getToken()
+    const isLoginPage = location.pathname === '/login'
+    const isRegisterPage = location.pathname === '/criar-conta'
+
+    if (!token && !isLoginPage && !isRegisterPage) {
       navigate('/login')
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, location])
 
   const login = async (data: LoginRequest) => {
     const response = await authService.login(data)
     setIsAuthenticated(true)
-    navigate('/dashboard')
+    navigate('/')
   }
 
   const register = async (data: RegisterRequest) => {

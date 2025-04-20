@@ -116,19 +116,23 @@ const PDIChat: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return <div>Carregando...</div>;
-  }
-
-  if (!pdi) {
-    return <div>PDI não encontrado</div>;
+  if (isLoading || !pdi) {
+    return (
+      <Container theme={theme}>
+        <TopBar theme={theme}>
+          <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
+            <FiArrowLeft /> Voltar
+          </BackButton>
+        </TopBar>
+      </Container>
+    );
   }
 
   return (
     <Container theme={theme}>
       <TopBar theme={theme}>
         <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
-          <FiArrowLeft /> Voltar
+          <FiArrowLeft />
         </BackButton>
         <PDIName
           theme={theme}
