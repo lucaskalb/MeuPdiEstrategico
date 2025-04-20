@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 
 interface ThemedProps {
   theme: 'light' | 'dark';

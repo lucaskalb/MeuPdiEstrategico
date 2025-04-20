@@ -1,40 +1,18 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
-import CriarConta from './pages/CriarConta';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import { AuthProvider } from './contexts/AuthContext';
+import { AppRoutes } from './routes';
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
-}
-
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const token = localStorage.getItem('authToken');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const App: React.FC = () => {
+function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/criar-conta" element={<CriarConta />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;

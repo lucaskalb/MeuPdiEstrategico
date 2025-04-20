@@ -6,9 +6,11 @@ import (
 	"time"
 	"unicode"
 
+	"meu-pdi-estrategico/backend/internal/models"
+
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"meu-pdi-estrategico/backend/internal/models"
 )
 
 var (
@@ -143,6 +145,23 @@ func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
 
 	if user.AccountLockedUntil != nil && user.AccountLockedUntil.After(time.Now()) {
 		return nil, ErrAccountLocked
+	}
+
+	return &user, nil
+} 
+
+func (s *UserService) GetUserById(userID uuid.UUID) (*models.User, error) {
+	var user models.User
+	result := s.db.Where("id = ?", userID).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, result.Error
+	}
+
+	if !user.Activated {
+		return nil, ErrUserNotActivated
 	}
 
 	return &user, nil

@@ -9,6 +9,8 @@ import (
 	"meu-pdi-estrategico/backend/internal/models"
 	"meu-pdi-estrategico/backend/internal/routes"
 	"meu-pdi-estrategico/backend/internal/services"
+	"meu-pdi-estrategico/backend/internal/handlers"
+	"meu-pdi-estrategico/backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -74,7 +76,7 @@ func setupDatabase() (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	if err := db.AutoMigrate(&models.User{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.PDI{}); err != nil {
 		return nil, fmt.Errorf("erro ao migrar esquema: %v", err)
 	}
 
@@ -95,7 +97,7 @@ func main() {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -107,8 +109,14 @@ func main() {
 	}
 
 	userService := services.NewUserService(db)
+	pdiService := services.NewPDIService(db)
 
+	// Configurar middleware de autenticação
+	middleware.SetJWTSecret(os.Getenv("JWT_SECRET"))
+
+	routes.SetupAuthRoutes(app, handlers.NewLoginHandler(userService))
 	routes.SetupUserRoutes(app, userService)
+	routes.SetupPDIRoutes(app, handlers.NewPDIHandler(pdiService))
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 import { FiSun, FiMoon } from 'react-icons/fi';
 
 interface ThemedProps {
