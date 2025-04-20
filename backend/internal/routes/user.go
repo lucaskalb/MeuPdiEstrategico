@@ -12,5 +12,4 @@ func SetupUserRoutes(app *fiber.App, userService *services.UserService) {
 
 	userGroup := app.Group("/api/users")
 	userGroup.Post("/register", userHandler.Register)
-	userGroup.Post("/login", userHandler.Login)
 } 

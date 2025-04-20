@@ -1,70 +1,185 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../hooks/useTheme';
+import { FiPlus } from 'react-icons/fi';
+import PDICard from '../components/PDICard';
 import Topbar from '../components/Topbar';
 import Sidebar from '../components/Sidebar';
-import { jwtDecode } from 'jwt-decode';
+import api from '../utils/axios';
 
-interface ThemedProps {
-  theme: 'light' | 'dark';
+interface PDI {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
 }
 
-interface JWTPayload {
-  nickname: string;
-  email: string;
-  user_id: number;
-}
-
-const Container = styled.div<ThemedProps>`
+const Container = styled.div`
   min-height: 100vh;
-  background-color: ${({ theme }) => theme === 'dark' ? '#1a1a1a' : '#f8f9fa'};
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
-  transition: all 0.3s ease;
-  padding-top: 64px; // Altura da Topbar
+  padding: 2rem;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Content = styled.div`
-  padding: 2rem;
+  margin-top: 80px;
+  padding: 0 1rem;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  color: ${({ theme }) => theme.colors.text};
+  font-weight: 600;
+`;
+
+const CreateButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.secondary};
+    cursor: not-allowed;
+  }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: ${({ theme }) => theme.colors.background};
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+`;
+
+const EmptyStateTitle = styled.h2`
+  font-size: 1.5rem;
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 1rem;
+`;
+
+const EmptyStateText = styled.p`
+  color: ${({ theme }) => theme.colors.secondary};
+  margin-bottom: 2rem;
 `;
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { theme } = useTheme();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userNickname, setUserNickname] = useState('');
+  const [pdis, setPdis] = useState<PDI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const userNickname = localStorage.getItem('userNickname') || 'Usuário';
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        const decoded = jwtDecode<JWTPayload>(token);
-        setUserNickname(decoded.nickname);
-      } catch (error) {
-        console.error('Erro ao decodificar token:', error);
-      }
-    }
+    fetchPDIs();
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const fetchPDIs = async () => {
+    try {
+      const response = await api.get('/api/pdis');
+      setPdis(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar PDIs:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return (
-    <>
-      <Topbar 
-        onMenuClick={toggleMenu} 
-        userNickname={userNickname}
-      />
-      <Sidebar 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)}
-        userNickname={userNickname}
-      />
-      <Container theme={theme}>
+  const handleCreatePDI = async () => {
+    try {
+      const response = await api.post('/api/pdis', {
+        name: 'Novo PDI',
+        status: 'DRAFT'
+      });
+      navigate(`/pdi/${response.data.id}/chat`);
+    } catch (error) {
+      console.error('Erro ao criar PDI:', error);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    setIsSidebarOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <Container>
+        <Topbar onMenuClick={handleAvatarClick} userNickname={userNickname} />
         <Content>
-          {/* Conteúdo será adicionado posteriormente */}
+          <Header>
+            <Title>Meus PDIs</Title>
+            <CreateButton disabled>
+              <FiPlus size={20} />
+              Carregando...
+            </CreateButton>
+          </Header>
         </Content>
       </Container>
-    </>
+    );
+  }
+
+  return (
+    <Container>
+      <Topbar onMenuClick={handleAvatarClick} userNickname={userNickname} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} userNickname={userNickname} />
+      <Content>
+        {pdis.length === 0 ? (
+          <EmptyState>
+            <EmptyStateTitle>Nenhum PDI encontrado</EmptyStateTitle>
+            <EmptyStateText>
+              Crie seu primeiro PDI para começar a planejar seu desenvolvimento profissional.
+            </EmptyStateText>
+            <CreateButton onClick={handleCreatePDI}>
+              <FiPlus size={20} />
+              Criar Primeiro PDI
+            </CreateButton>
+          </EmptyState>
+        ) : (
+          <Grid>
+            {pdis.map((pdi) => (
+              <PDICard
+                key={pdi.id}
+                id={pdi.id}
+                name={pdi.name}
+                status={pdi.status}
+                createdAt={pdi.created_at}
+              />
+            ))}
+          </Grid>
+        )}
+      </Content>
+    </Container>
   );
 };
 

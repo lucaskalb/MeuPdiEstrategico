@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
@@ -21,8 +21,22 @@ const TopbarContainer = styled.div<ThemedProps>`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 1rem;
   z-index: 100;
+`;
+
+const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const Title = styled.h1<ThemedProps>`
+  font-size: 1.25rem;
+  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
+  font-weight: 600;
+  margin: 0;
 `;
 
 const AvatarButton = styled.button<ThemedProps>`
@@ -56,13 +70,16 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, userNickname }) => {
 
   return (
     <TopbarContainer theme={theme}>
-      <AvatarButton 
-        theme={theme} 
-        onClick={onMenuClick} 
-        aria-label="Abrir menu"
-      >
-        {userNickname.charAt(0).toUpperCase()}
-      </AvatarButton>
+      <LeftSection>
+        <AvatarButton 
+          theme={theme} 
+          onClick={onMenuClick} 
+          aria-label="Abrir menu"
+        >
+          {userNickname.charAt(0).toUpperCase()}
+        </AvatarButton>
+        <Title theme={theme}>Meu PDI Estratégico</Title>
+      </LeftSection>
     </TopbarContainer>
   );
 };

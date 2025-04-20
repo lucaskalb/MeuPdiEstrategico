@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 import { FiSun, FiMoon } from 'react-icons/fi';
-import { authService } from '../services/auth.service';
+import { useAuth } from '../hooks/useAuth';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
@@ -166,43 +166,31 @@ const LinkText = styled(Link)<ThemedProps>`
 `;
 
 const Login: React.FC = () => {
-  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-    submit: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  React.useEffect(() => {
-    if (authService.isAuthenticated()) {
-      navigate('/', { replace: true });
-    }
-  }, [navigate]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({ email: '', password: '', submit: '' });
+    setError('');
+    setIsLoading(true);
 
     try {
-      const response = await authService.login(formData);
-      localStorage.setItem('authToken', response.token);
-      navigate('/', { replace: true });
-    } catch (error) {
-      if (error instanceof Error) {
-        setErrors(prev => ({
-          ...prev,
-          submit: error.message,
-        }));
-      }
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -223,7 +211,7 @@ const Login: React.FC = () => {
         <Title theme={theme}>Login</Title>
         <Form onSubmit={handleSubmit}>
           <InputGroup>
-            <Label theme={theme} htmlFor="email">Email</Label>
+            <Label theme={theme} htmlFor="email">E-mail</Label>
             <Input
               theme={theme}
               type="email"
@@ -231,12 +219,10 @@ const Login: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="seu@email.com"
               required
+              placeholder="Seu e-mail"
             />
-            {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
           </InputGroup>
-
           <InputGroup>
             <Label theme={theme} htmlFor="password">Senha</Label>
             <Input
@@ -246,21 +232,15 @@ const Login: React.FC = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Sua senha"
               required
+              placeholder="Sua senha"
             />
-            {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
           </InputGroup>
-
-          {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
-
-          <Button theme={theme} type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Entrando...' : 'Entrar'}
           </Button>
-
-          <LinkText theme={theme} to="/criar-conta">
-            Ainda não tem uma conta? Cadastre-se
-          </LinkText>
+          <Link to="/criar-conta">Não tem uma conta? Crie uma agora</Link>
         </Form>
       </Card>
     </Container>

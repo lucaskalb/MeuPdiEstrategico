@@ -1,39 +1,31 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
-import CriarConta from './pages/CriarConta';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeContextProvider, useTheme } from './contexts/ThemeContext';
+import GlobalStyle from './styles/global';
+import { lightTheme, darkTheme } from './styles/theme';
+import AppRoutes from './routes';
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
-}
-
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const token = localStorage.getItem('authToken');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
+const AppContent: React.FC = () => {
+  const { theme } = useTheme();
+  return (
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <GlobalStyle />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </ThemeProvider>
+  );
 };
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/criar-conta" element={<CriarConta />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <Router>
+      <ThemeContextProvider>
+        <AppContent />
+      </ThemeContextProvider>
+    </Router>
   );
 };
 
