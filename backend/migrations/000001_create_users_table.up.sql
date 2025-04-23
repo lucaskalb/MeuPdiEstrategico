@@ -1,4 +1,12 @@
-CREATE TABLE public.user (
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nickname TEXT NOT NULL,
     password TEXT NOT NULL,
@@ -14,18 +22,12 @@ CREATE TABLE public.user (
     account_locked_until TIMESTAMP WITH TIME ZONE
 );
 
-CREATE UNIQUE INDEX idx_user_email_activated ON public.user (email, activated);
-CREATE INDEX idx_user_email ON public.user (email);
+CREATE UNIQUE INDEX idx_users_email_activated ON users (email, activated);
+CREATE INDEX idx_users_email ON users (email);
 
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_user_updated_at
-    BEFORE UPDATE ON public.user
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column(); 
+    EXECUTE FUNCTION update_updated_at_column();
+
+

@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"meu-pdi-estrategico/backend/internal/models"
 	"meu-pdi-estrategico/backend/internal/routes"
 	"meu-pdi-estrategico/backend/internal/services"
 	"meu-pdi-estrategico/backend/internal/handlers"
@@ -76,11 +75,8 @@ func setupDatabase() (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	if err := db.AutoMigrate(&models.User{}, &models.PDI{}); err != nil {
-		return nil, fmt.Errorf("erro ao migrar esquema: %v", err)
-	}
-
 	log.Println("Conexão com o banco de dados estabelecida com sucesso")
+	log.Println("Nota: Execute './migrate.sh up' para aplicar as migrações do banco de dados")
 	return db, nil
 }
 
@@ -110,6 +106,8 @@ func main() {
 
 	userService := services.NewUserService(db)
 	pdiService := services.NewPDIService(db)
+	chatService := services.NewChatService(db)
+	openaiService := services.NewOpenAIService(db)
 
 	// Configurar middleware de autenticação
 	middleware.SetJWTSecret(os.Getenv("JWT_SECRET"))
@@ -117,6 +115,7 @@ func main() {
 	routes.SetupAuthRoutes(app, handlers.NewLoginHandler(userService))
 	routes.SetupUserRoutes(app, userService)
 	routes.SetupPDIRoutes(app, handlers.NewPDIHandler(pdiService))
+	routes.SetupChatRoutes(app, handlers.NewChatHandler(chatService, openaiService))
 
 	port := os.Getenv("PORT")
 	if port == "" {
