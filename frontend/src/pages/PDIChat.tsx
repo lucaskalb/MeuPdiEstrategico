@@ -2,12 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
-import { FiArrowLeft, FiSend, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { FiArrowLeft, FiSend, FiUser, FiMessageSquare, FiEye } from 'react-icons/fi';
 import api from '../utils/axios';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
+type Theme = 'light' | 'dark';
+
 interface ThemedProps {
-  theme: 'light' | 'dark';
+  theme: Theme;
 }
 
 interface StyledMessageContentProps extends ThemedProps {
@@ -56,7 +58,7 @@ const Container = styled.div<ThemedProps>`
   }
 `;
 
-const TopBar = styled.div<ThemedProps>`
+const TopBar = styled.div<{ theme: Theme }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -64,13 +66,32 @@ const TopBar = styled.div<ThemedProps>`
   z-index: 10;
   display: flex;
   align-items: center;
-  padding: 1rem 2rem;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
   background: ${({ theme }) => theme === 'dark' ? '#202123' : '#ffffff'};
   border-bottom: 1px solid ${({ theme }) => theme === 'dark' ? '#4b4b4b' : '#e5e5e5'};
   height: 4rem;
+
+  @media (min-width: 768px) {
+    padding: 1rem 2rem;
+  }
 `;
 
-const BackButton = styled.button<ThemedProps>`
+const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+`;
+
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+`;
+
+const BackButton = styled.button<{ theme: Theme }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -82,22 +103,40 @@ const BackButton = styled.button<ThemedProps>`
   padding: 0.5rem;
   border-radius: 4px;
   transition: all 0.2s;
+  min-width: 32px;
+  justify-content: center;
 
   &:hover {
     background-color: ${({ theme }) => theme === 'dark' ? '#2a2b32' : '#f1f5f9'};
   }
+
+  span {
+    display: none;
+    @media (min-width: 768px) {
+      display: inline;
+    }
+  }
 `;
 
-const PDIName = styled.input<ThemedProps>`
+const PDIName = styled.input<{ theme: Theme }>`
   flex: 1;
-  margin: 0 1rem;
+  margin: 0 0.5rem;
   padding: 0.5rem;
   background: transparent;
   border: none;
   color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   outline: none;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (min-width: 768px) {
+    font-size: 1.25rem;
+    margin: 0 1rem;
+  }
 
   &:focus {
     background-color: ${({ theme }) => theme === 'dark' ? '#2a2b32' : '#f1f5f9'};
@@ -310,26 +349,34 @@ const LoadingDots = styled.div`
   padding-left: 0.25rem;
 `;
 
-const InputContainer = styled.div<ThemedProps>`
+const InputContainer = styled.div<{ theme: Theme }>`
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1.5rem;
+  padding: 1rem;
   background: ${({ theme }) => theme === 'dark' ? '#343541' : '#ffffff'};
   border-top: 1px solid ${({ theme }) => theme === 'dark' ? '#4b4b4b' : '#e5e5e5'};
   z-index: 10;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
-const InputWrapper = styled.div<ThemedProps>`
+const InputWrapper = styled.div<{ theme: Theme }>`
   max-width: 800px;
   margin: 0 auto;
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   background: ${({ theme }) => theme === 'dark' ? '#40414f' : '#f7f7f8'};
   border-radius: 0.5rem;
   padding: 0.5rem;
   border: 1px solid ${({ theme }) => theme === 'dark' ? '#4b4b4b' : '#e5e5e5'};
+
+  @media (min-width: 768px) {
+    gap: 1rem;
+  }
 `;
 
 const MessageInput = styled.textarea<ThemedProps>`
@@ -387,6 +434,25 @@ const SendButton = styled.button<ThemedProps>`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+`;
+
+const ViewButton = styled.button<{ theme: Theme }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 32px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme === 'dark' ? '#2a2b32' : '#f1f5f9'};
   }
 `;
 
@@ -505,9 +571,12 @@ const PDIChat: React.FC = () => {
     return (
       <Container theme={theme}>
         <TopBar theme={theme}>
-          <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
-            <FiArrowLeft /> Voltar
-          </BackButton>
+          <LeftSection>
+            <BackButton theme={theme} onClick={() => navigate(-1)}>
+              <FiArrowLeft />
+              <span>Voltar</span>
+            </BackButton>
+          </LeftSection>
         </TopBar>
       </Container>
     );
@@ -516,17 +585,26 @@ const PDIChat: React.FC = () => {
   return (
     <Container theme={theme}>
       <TopBar theme={theme}>
-        <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
-          <FiArrowLeft />
-        </BackButton>
-        <PDIName
-          theme={theme}
-          value={pdi.name}
-          onChange={handleNameChange}
-          onBlur={handleNameBlur}
-          onKeyPress={handleKeyPress}
-        />
+        <LeftSection>
+          <BackButton theme={theme} onClick={() => navigate(-1)}>
+            <FiArrowLeft />
+            <span>Voltar</span>
+          </BackButton>
+          <PDIName
+            theme={theme}
+            value={pdi.name}
+            onChange={handleNameChange}
+            onBlur={handleNameBlur}
+            onKeyPress={handleKeyPress}
+          />
+        </LeftSection>
+        <RightSection>
+          <ViewButton theme={theme} onClick={() => navigate(`/pdi/${id}`)}>
+            <FiEye size={20} />
+          </ViewButton>
+        </RightSection>
       </TopBar>
+
       <ChatContainer>
         <MessagesContainer theme={theme}>
           {messages.map((message) => (
@@ -560,6 +638,7 @@ const PDIChat: React.FC = () => {
           )}
           <div ref={messagesEndRef} />
         </MessagesContainer>
+
         <InputContainer theme={theme}>
           <InputWrapper theme={theme}>
             <MessageInput
