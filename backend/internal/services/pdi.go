@@ -29,6 +29,7 @@ func (s *PDIService) CreatePDI(userID string, req CreatePDIRequest) (*models.PDI
 		Name:   req.Name,
 		UserID: userID,
 		Status: req.Status,
+    Content: "{}",
 	}
 
 	if err := s.db.Create(pdi).Error; err != nil {
