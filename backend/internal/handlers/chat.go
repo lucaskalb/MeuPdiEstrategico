@@ -11,12 +11,14 @@ import (
 type ChatHandler struct {
 	chatService   *services.ChatService
 	openaiService *services.OpenAIService
+	pdiService    *services.PDIService
 }
 
-func NewChatHandler(chatService *services.ChatService, openaiService *services.OpenAIService) *ChatHandler {
+func NewChatHandler(chatService *services.ChatService, openaiService *services.OpenAIService, pdiService *services.PDIService) *ChatHandler {
 	return &ChatHandler{
 		chatService:   chatService,
 		openaiService: openaiService,
+		pdiService:    pdiService,
 	}
 }
 
@@ -27,10 +29,10 @@ type RequestChat struct {
 
 type ResponseChat struct {
 	ID        uuid.UUID `json:"id"`
-	Content   string `json:"content"`
-	Role      string `json:"role"`
-	Status    string `json:"status"`
-	CreatedAt string `json:"created_at"`
+	Content   string    `json:"content"`
+	Role      string    `json:"role"`
+	Status    string    `json:"status"`
+	CreatedAt string    `json:"created_at"`
 }
 
 type ResponseChatList struct {
@@ -42,6 +44,27 @@ func (h *ChatHandler) CreateMessage(c *fiber.Ctx) error {
 	if pdiID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "ID do PDI é obrigatório",
+		})
+	}
+
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Usuário não autenticado",
+		})
+	}
+
+	// Validar se o PDI existe e está ativo
+	pdi, err := h.pdiService.GetPDIByID(userID, pdiID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "PDI não encontrado",
+		})
+	}
+
+	if !pdi.Activated {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "PDI não está ativo",
 		})
 	}
 
@@ -68,7 +91,7 @@ func (h *ChatHandler) CreateMessage(c *fiber.Ctx) error {
 	}
 
 	// Processar mensagem com OpenAI
-	assistantMessage, err := h.openaiService.ProcessMessage(c.Context(), userMessage)
+	assistantMessage, err := h.openaiService.ProcessMessage(c.Context(), userMessage, userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Erro ao processar mensagem com OpenAI",
@@ -101,6 +124,27 @@ func (h *ChatHandler) GetMessages(c *fiber.Ctx) error {
 	if pdiID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "ID do PDI é obrigatório",
+		})
+	}
+
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Usuário não autenticado",
+		})
+	}
+
+	// Validar se o PDI existe e está ativo
+	pdi, err := h.pdiService.GetPDIByID(userID, pdiID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "PDI não encontrado",
+		})
+	}
+
+	if !pdi.Activated {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "PDI não está ativo",
 		})
 	}
 

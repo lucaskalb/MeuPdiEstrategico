@@ -3,10 +3,10 @@ package models
 import (
 	"time"
 
-	"gorm.io/gorm"
-	"github.com/google/uuid"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type PDIStatus string
@@ -19,14 +19,16 @@ const (
 )
 
 type PDI struct {
-	ID        string     `gorm:"type:uuid;primary_key" json:"id"`
-	Name      string     `gorm:"type:text;not null" json:"name"`
-	UserID    string     `gorm:"type:uuid;not null" json:"user_id"`
-	Activated bool       `gorm:"default:true" json:"activated"`
-	Status    PDIStatus  `gorm:"type:varchar(20);not null;default:'DRAFT'" json:"status"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
+	ID                     string     `gorm:"type:uuid;primary_key" json:"id"`
+	Name                   string     `gorm:"type:text;not null" json:"name"`
+	UserID                 string     `gorm:"type:uuid;not null" json:"user_id"`
+	ThreadID               string     `gorm:"type:text" json:"thread_id"`
+	Activated              bool       `gorm:"default:true" json:"activated"`
+	Status                 PDIStatus  `gorm:"type:varchar(20);not null;default:'DRAFT'" json:"status"`
+	Content                string     `gorm:"type:jsonb" json:"content"`
+	CreatedAt              time.Time  `json:"created_at"`
+	UpdatedAt              time.Time  `json:"updated_at"`
+	DeletedAt              *time.Time `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 func (p *PDI) BeforeCreate(tx *gorm.DB) error {
@@ -48,12 +50,12 @@ func (p *PDI) BeforeSave(tx *gorm.DB) error {
 	// Verifica se já existe um PDI ativo com o mesmo nome para o mesmo usuário
 	var count int64
 	query := tx.Model(&PDI{}).Where("name = ? AND user_id = ? AND activated = true", p.Name, p.UserID)
-	
+
 	// Só adiciona a condição do ID se ele não estiver vazio
 	if p.ID != "" {
 		query = query.Where("id != ?", p.ID)
 	}
-	
+
 	if err := query.Count(&count).Error; err != nil {
 		return fmt.Errorf("erro ao verificar PDI existente: %v", err)
 	}
@@ -63,4 +65,4 @@ func (p *PDI) BeforeSave(tx *gorm.DB) error {
 	}
 
 	return nil
-} 
+}

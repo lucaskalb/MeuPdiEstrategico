@@ -115,7 +115,7 @@ func main() {
 	routes.SetupAuthRoutes(app, handlers.NewLoginHandler(userService))
 	routes.SetupUserRoutes(app, userService)
 	routes.SetupPDIRoutes(app, handlers.NewPDIHandler(pdiService))
-	routes.SetupChatRoutes(app, handlers.NewChatHandler(chatService, openaiService))
+	routes.SetupChatRoutes(app, handlers.NewChatHandler(chatService, openaiService, pdiService))
 
 	port := os.Getenv("PORT")
 	if port == "" {
