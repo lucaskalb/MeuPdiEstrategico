@@ -14,7 +14,7 @@ type User struct {
 	Email               string         `gorm:"type:text;not null;uniqueIndex:idx_user_email_deleted" json:"email"`
 	CreatedAt           time.Time      `json:"created_at"`
 	UpdatedAt           time.Time      `json:"updated_at"`
-	DeletedAt           gorm.DeletedAt `gorm:"index:idx_user_email_deleted" json:"-"`
+	DeletedAt           gorm.DeletedAt `json:"-"`
 	Activated           bool           `gorm:"default:true" json:"activated"`
 	EmailVerified       bool           `gorm:"default:false" json:"email_verified"`
 	VerificationToken   string         `json:"-"`

@@ -1,0 +1,1 @@
+ALTER TABLE pdis DROP COLUMN thread_id; 
