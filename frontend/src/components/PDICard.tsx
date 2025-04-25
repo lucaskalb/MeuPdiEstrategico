@@ -1,114 +1,158 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { useTheme } from '../hooks/useTheme';
-import { format, parseISO } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { FiPlus } from 'react-icons/fi';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-interface ThemedProps {
-  theme: 'light' | 'dark';
-}
-
 interface PDICardProps {
-  id: string;
-  name: string;
-  status: string;
-  createdAt: string;
+  id?: string;
+  name?: string;
+  status?: string;
+  createdAt?: string;
+  isNew?: boolean;
+  onClick?: () => void;
 }
 
-const Card = styled.div<ThemedProps>`
-  background: ${({ theme }) => theme === 'dark' ? '#242424' : '#ffffff'};
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: ${({ theme }) => 
-    theme === 'dark' 
-      ? '0 4px 6px rgba(0, 0, 0, 0.1)' 
-      : '0 4px 6px rgba(0, 0, 0, 0.05)'
+const Card = styled.div<{ isNew?: boolean }>`
+  background: ${({ theme, isNew }) => isNew ? 
+    `linear-gradient(135deg, ${theme.colors.primary}15, ${theme.colors.primary}25)` : 
+    theme.colors.cardBackground
   };
-  transition: all 0.3s ease;
+  border: 2px dashed ${({ theme, isNew }) => isNew ? theme.colors.primary : 'transparent'};
+  border-radius: 12px;
+  padding: 1.5rem;
   cursor: pointer;
+  transition: all 0.2s;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${({ theme }) => 
-      theme === 'dark' 
-        ? '0 6px 8px rgba(0, 0, 0, 0.2)' 
-        : '0 6px 8px rgba(0, 0, 0, 0.1)'
-    };
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
 `;
 
-const Title = styled.h3<ThemedProps>`
-  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+`;
+
+const CardTitle = styled.h3<{ isNew?: boolean }>`
+  font-size: ${({ isNew }) => isNew ? '1.25rem' : '1.5rem'};
   font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const CardContent = styled.div<{ isNew?: boolean }>`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  ${({ isNew }) => isNew && `
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  `}
 `;
 
 const Status = styled.span<{ status: string }>`
-  display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
-  background-color: ${({ status }) => {
+  background-color: ${({ status, theme }) => {
     switch (status) {
       case 'DRAFT':
-        return '#e2e8f0';
-      case 'PENDING':
-        return '#fef3c7';
+        return theme.colors.warning + '20';
       case 'IN_PROGRESS':
-        return '#dbeafe';
+        return theme.colors.info + '20';
       case 'DONE':
-        return '#dcfce7';
+        return theme.colors.success + '20';
       default:
-        return '#e2e8f0';
+        return theme.colors.secondary + '20';
     }
   }};
-  color: ${({ status }) => {
+  color: ${({ status, theme }) => {
     switch (status) {
       case 'DRAFT':
-        return '#4a5568';
-      case 'PENDING':
-        return '#92400e';
+        return theme.colors.warning;
       case 'IN_PROGRESS':
-        return '#1e40af';
+        return theme.colors.info;
       case 'DONE':
-        return '#166534';
+        return theme.colors.success;
       default:
-        return '#4a5568';
+        return theme.colors.secondary;
     }
   }};
 `;
 
-const Date = styled.span<ThemedProps>`
-  color: ${({ theme }) => theme === 'dark' ? '#a0aec0' : '#718096'};
+const CardFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 1rem;
   font-size: 0.875rem;
-  margin-top: 0.5rem;
-  display: block;
+  color: ${({ theme }) => theme.colors.secondary};
 `;
 
-const PDICard: React.FC<PDICardProps> = ({ id, name, status, createdAt }) => {
-  const { theme } = useTheme();
-  
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = parseISO(dateString);
-      return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-    } catch (error) {
-      console.error('Erro ao formatar data:', error);
-      return 'Data inválida';
+const AddIcon = styled(FiPlus)`
+  width: 2rem;
+  height: 2rem;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-bottom: 1rem;
+`;
+
+const NewCardText = styled.p`
+  color: ${({ theme }) => theme.colors.secondary};
+  margin: 0;
+  font-size: 1rem;
+`;
+
+const PDICard: React.FC<PDICardProps> = ({ id, name, status, createdAt, isNew, onClick }) => {
+  const navigate = useNavigate();
+
+  if (isNew) {
+    return (
+      <Card isNew onClick={onClick}>
+        <CardContent isNew>
+          <AddIcon />
+          <CardTitle isNew>Criar Novo PDI</CardTitle>
+          <NewCardText>Comece um novo plano de desenvolvimento</NewCardText>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const handleCardClick = () => {
+    if (id) {
+      navigate(`/pdi/${id}/chat`);
     }
   };
 
   return (
-    <Link to={`/pdi/${id}/chat`} style={{ textDecoration: 'none' }}>
-      <Card theme={theme}>
-        <Title theme={theme}>{name}</Title>
-        <Status status={status}>{status}</Status>
-        <Date theme={theme}>Criado em: {formatDate(createdAt)}</Date>
-      </Card>
-    </Link>
+    <Card onClick={handleCardClick}>
+      <CardHeader>
+        <CardTitle>{name}</CardTitle>
+        {status && <Status status={status}>{status}</Status>}
+      </CardHeader>
+      <CardContent>
+        {/* Conteúdo adicional pode ser adicionado aqui */}
+      </CardContent>
+      <CardFooter>
+        <span>
+          Criado em {createdAt && format(new Date(createdAt), "d 'de' MMMM", { locale: ptBR })}
+        </span>
+      </CardFooter>
+    </Card>
   );
 };
 

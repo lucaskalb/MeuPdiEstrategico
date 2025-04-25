@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"meu-pdi-estrategico/backend/internal/models"
 	"os"
+	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 	"gorm.io/gorm"
 )
 
 type OpenAIService struct {
-	client *openai.Client
-	db     *gorm.DB
+	client      *openai.Client
+	db          *gorm.DB
+	assistantID string
 }
 
 func NewOpenAIService(db *gorm.DB) *OpenAIService {
@@ -20,11 +22,16 @@ func NewOpenAIService(db *gorm.DB) *OpenAIService {
 	if apiKey == "" {
 		panic("OPENAI_API_KEY não configurada")
 	}
+	assistantID := os.Getenv("OPENAI_ASSISTANT_ID")
+	if assistantID == "" {
+		panic("OPENAI_ASSISTANT_ID não configurada")
+	}
 
 	client := openai.NewClient(apiKey)
 	return &OpenAIService{
-		client: client,
-		db:     db,
+		assistantID: assistantID,
+		client:      client,
+		db:          db,
 	}
 }
 
@@ -38,46 +45,59 @@ func (s *OpenAIService) ProcessMessage(ctx context.Context, message *models.Mess
 	}
 
 	// Preparar mensagens para a OpenAI
-	openaiMessages := make([]openai.ChatCompletionMessage, 0)
-	
+	openaiMessages := make([]openai.ThreadMessage, 0)
+
 	// Adicionar mensagens do histórico
 	for _, msg := range messages {
-		role := openai.ChatMessageRoleUser
+		role := openai.ThreadMessageRoleUser
 		if msg.Role == "assistant" {
-			role = openai.ChatMessageRoleAssistant
+			role = openai.ThreadMessageRoleAssistant
 		}
-		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
-			Role:    role,
-			Content: msg.Content,
-		})
+		openaiMessages = append(openaiMessages,
+			openai.ThreadMessage{
+				Role:    role,
+				Content: message.Content,
+			})
 	}
 
 	// Adicionar a nova mensagem do usuário
-	openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleUser,
-		Content: message.Content,
+	openaiMessages = append(openaiMessages,
+		openai.ThreadMessage{
+			Role:    openai.ThreadMessageRoleUser,
+			Content: message.Content,
+		})
+
+	run, err := s.client.CreateThreadAndRun(ctx, openai.CreateThreadAndRunRequest{
+		RunRequest: openai.RunRequest{AssistantID: s.assistantID},
+		Thread: openai.ThreadRequest{
+			Messages: openaiMessages,
+		},
 	})
 
-	// Configurar e fazer a chamada para a OpenAI
-	resp, err := s.client.CreateChatCompletion(
-		ctx,
-		openai.ChatCompletionRequest{
-			Model:    openai.GPT4TurboPreview,
-			Messages: openaiMessages,
-			Temperature: 0.7,
-			MaxTokens: 1000,
-		},
-	)
+  for run.Status == openai.RunStatusQueued || run.Status == openai.RunStatusInProgress {
+		run, err = s.client.RetrieveRun(ctx, run.ThreadID, run.ID)
+		if err != nil {
+      return nil, fmt.Errorf("erro ao processar mensagem com OpenAI: %v", err)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if run.Status != openai.RunStatusCompleted {
+    		return nil, fmt.Errorf("erro ao processar com status na OpenAI: %v", run.Status, err)
+	}
+
+	numMessages := 1
+	iaMessages, err := s.client.ListMessage(ctx, run.ThreadID, &numMessages, nil, nil, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao processar mensagem com OpenAI: %v", err)
 	}
 
 	// Criar resposta do assistente
 	assistantMessage := &models.Message{
-		PDIID:     message.PDIID,
-		Content:   resp.Choices[0].Message.Content,
-		Role:      "assistant",
-		Status:    models.MessageStatusCompleted,
+		PDIID:   message.PDIID,
+		Content: iaMessages.Messages[0].Content[0].Text.Value,
+		Role:    "assistant",
+		Status:  models.MessageStatusCompleted,
 	}
 
 	// Salvar a resposta no banco de dados
@@ -86,4 +106,4 @@ func (s *OpenAIService) ProcessMessage(ctx context.Context, message *models.Mess
 	}
 
 	return assistantMessage, nil
-} 
+}

@@ -116,10 +116,28 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const getNextPDINumber = () => {
+    const novoPDIPattern = /^Novo PDI( #(\d+))?$/;
+    let maxNumber = 0;
+
+    pdis.forEach(pdi => {
+      const match = pdi.name.match(novoPDIPattern);
+      if (match) {
+        const number = match[2] ? parseInt(match[2], 10) : 1;
+        maxNumber = Math.max(maxNumber, number);
+      }
+    });
+
+    return maxNumber + 1;
+  };
+
   const handleCreatePDI = async () => {
     try {
+      const nextNumber = getNextPDINumber();
+      const pdiName = nextNumber === 1 ? 'Novo PDI' : `Novo PDI #${nextNumber}`;
+      
       const response = await api.post('/api/pdis', {
-        name: 'Novo PDI',
+        name: pdiName,
         status: 'DRAFT'
       });
       navigate(`/pdi/${response.data.id}/chat`);
@@ -166,17 +184,23 @@ const Dashboard: React.FC = () => {
             </CreateButton>
           </EmptyState>
         ) : (
-          <Grid>
-            {pdis.map((pdi) => (
+          <>
+            <Grid>
+              {pdis.map((pdi) => (
+                <PDICard
+                  key={pdi.id}
+                  id={pdi.id}
+                  name={pdi.name}
+                  status={pdi.status}
+                  createdAt={pdi.created_at}
+                />
+              ))}
               <PDICard
-                key={pdi.id}
-                id={pdi.id}
-                name={pdi.name}
-                status={pdi.status}
-                createdAt={pdi.created_at}
+                isNew
+                onClick={handleCreatePDI}
               />
-            ))}
-          </Grid>
+            </Grid>
+          </>
         )}
       </Content>
     </Container>
