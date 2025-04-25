@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"meu-pdi-estrategico/backend/internal/routes"
-	"meu-pdi-estrategico/backend/internal/services"
 	"meu-pdi-estrategico/backend/internal/handlers"
 	"meu-pdi-estrategico/backend/internal/middleware"
+	"meu-pdi-estrategico/backend/internal/routes"
+	"meu-pdi-estrategico/backend/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -55,7 +55,7 @@ func setupDatabase() (*gorm.DB, error) {
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: gormLogger,
+		Logger:      gormLogger,
 		PrepareStmt: true,
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
@@ -124,4 +124,4 @@ func main() {
 
 	log.Printf("Servidor iniciado na porta %s", port)
 	log.Fatal(app.Listen(fmt.Sprintf(":%s", port)))
-} 
+}
