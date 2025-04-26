@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../hooks/useTheme';
+import { FiMenu } from 'react-icons/fi';
 
 interface ThemedProps {
   theme: 'light' | 'dark';
@@ -39,25 +40,22 @@ const Title = styled.h1<ThemedProps>`
   margin: 0;
 `;
 
-const AvatarButton = styled.button<ThemedProps>`
+const MenuButton = styled.button<ThemedProps>`
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: #3b82f6;
-  color: white;
+  border-radius: 8px;
+  background-color: transparent;
+  color: ${({ theme }) => theme === 'dark' ? '#fff' : '#1a1a1a'};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
   padding: 0;
 
   &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+    background-color: ${({ theme }) => theme === 'dark' ? '#2a2b32' : '#f1f5f9'};
   }
 
   &:active {
@@ -71,13 +69,13 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, userNickname }) => {
   return (
     <TopbarContainer theme={theme}>
       <LeftSection>
-        <AvatarButton 
+        <MenuButton 
           theme={theme} 
           onClick={onMenuClick} 
           aria-label="Abrir menu"
         >
-          {userNickname.charAt(0).toUpperCase()}
-        </AvatarButton>
+          <FiMenu size={24} />
+        </MenuButton>
         <Title theme={theme}>Meu PDI Estratégico</Title>
       </LeftSection>
     </TopbarContainer>

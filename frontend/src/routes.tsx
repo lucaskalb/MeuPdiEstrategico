@@ -5,6 +5,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import PDIChat from './pages/PDIChat';
 import PDIView from './pages/PDIView';
+import PDIMindmap from './pages/PDIMindmap';
 import CriarConta from './pages/CriarConta';
 import Dashboard from './pages/Dashboard';
 
@@ -45,6 +46,14 @@ const AppRoutes: React.FC = () => {
           element={
             <PrivateRoute>
               <PDIChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/pdi/:id/mindmap"
+          element={
+            <PrivateRoute>
+              <PDIMindmap />
             </PrivateRoute>
           }
         />

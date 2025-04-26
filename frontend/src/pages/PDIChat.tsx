@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import styled, { DefaultTheme } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
-import { FiArrowLeft, FiSend, FiUser, FiMessageSquare, FiEye } from 'react-icons/fi';
+import { FiHome, FiSend, FiUser, FiMessageSquare, FiEye, FiGitBranch } from 'react-icons/fi';
 import api from '../utils/axios';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
@@ -572,9 +572,8 @@ const PDIChat: React.FC = () => {
       <Container theme={theme}>
         <TopBar theme={theme}>
           <LeftSection>
-            <BackButton theme={theme} onClick={() => navigate(-1)}>
-              <FiArrowLeft />
-              <span>Voltar</span>
+            <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
+              <FiHome size={20} />
             </BackButton>
           </LeftSection>
         </TopBar>
@@ -586,9 +585,8 @@ const PDIChat: React.FC = () => {
     <Container theme={theme}>
       <TopBar theme={theme}>
         <LeftSection>
-          <BackButton theme={theme} onClick={() => navigate(-1)}>
-            <FiArrowLeft />
-            <span>Voltar</span>
+          <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
+            <FiHome size={20} />
           </BackButton>
           <PDIName
             theme={theme}
@@ -599,6 +597,9 @@ const PDIChat: React.FC = () => {
           />
         </LeftSection>
         <RightSection>
+          <ViewButton theme={theme} onClick={() => navigate(`/pdi/${id}/mindmap`)}>
+            <FiGitBranch size={20} />
+          </ViewButton>
           <ViewButton theme={theme} onClick={() => navigate(`/pdi/${id}`)}>
             <FiEye size={20} />
           </ViewButton>
