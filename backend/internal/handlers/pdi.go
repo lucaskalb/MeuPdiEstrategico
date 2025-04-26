@@ -112,4 +112,33 @@ func (h *PDIHandler) GetPDIByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(pdi)
+}
+
+func (h *PDIHandler) DeletePDI(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "usuário não autenticado",
+		})
+	}
+
+	pdiID := c.Params("id")
+	if pdiID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "ID do PDI não fornecido",
+		})
+	}
+
+	if err := h.pdiService.DeletePDI(userID, pdiID); err != nil {
+		if err.Error() == "PDI não encontrado" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 } 

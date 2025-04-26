@@ -73,4 +73,22 @@ func (s *PDIService) GetPDIByID(userID, pdiID string) (*models.PDI, error) {
 		return nil, err
 	}
 	return &pdi, nil
+}
+
+func (s *PDIService) DeletePDI(userID, pdiID string) error {
+	var pdi models.PDI
+	if err := s.db.Where("id = ? AND user_id = ? AND activated = ?", pdiID, userID, true).First(&pdi).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("PDI não encontrado")
+		}
+		return err
+	}
+
+	// Realizar exclusão lógica
+	pdi.Activated = false
+	if err := s.db.Save(&pdi).Error; err != nil {
+		return err
+	}
+
+	return nil
 } 

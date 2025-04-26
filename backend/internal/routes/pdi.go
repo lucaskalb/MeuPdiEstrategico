@@ -14,4 +14,5 @@ func SetupPDIRoutes(app *fiber.App, pdiHandler *handlers.PDIHandler) {
 	pdiGroup.Post("", pdiHandler.CreatePDI)
 	pdiGroup.Get("/:id", pdiHandler.GetPDIByID)
 	pdiGroup.Patch("/:id", pdiHandler.UpdatePDI)
+	pdiGroup.Delete("/:id", pdiHandler.DeletePDI)
 } 
