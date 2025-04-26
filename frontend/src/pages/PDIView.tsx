@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled, { DefaultTheme } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
-import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
+import { FiHome, FiMessageSquare, FiGitBranch } from 'react-icons/fi';
 import api from '../utils/axios';
 
 interface ThemedProps {
@@ -74,7 +74,7 @@ const LeftSection = styled.div`
 const RightSection = styled.div`
   display: flex;
   align-items: center;
-  margin-left: 0.5rem;
+  gap: 0.5rem;
 `;
 
 const BackButton = styled.button<{ theme: DefaultTheme }>`
@@ -346,9 +346,8 @@ const PDIView: React.FC = () => {
     return (
       <Container theme={theme}>
         <TopBar theme={theme}>
-          <BackButton theme={theme} onClick={() => navigate(-1)}>
-            <FiArrowLeft />
-            <span>Voltar</span>
+          <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
+            <FiHome size={20} />
           </BackButton>
         </TopBar>
       </Container>
@@ -359,9 +358,8 @@ const PDIView: React.FC = () => {
     <Container theme={theme}>
       <TopBar theme={theme}>
         <LeftSection>
-          <BackButton theme={theme} onClick={() => navigate(-1)}>
-            <FiArrowLeft />
-            <span>Voltar</span>
+          <BackButton theme={theme} onClick={() => navigate('/dashboard')}>
+            <FiHome size={20} />
           </BackButton>
           <PDIName
             theme={theme}
@@ -372,6 +370,9 @@ const PDIView: React.FC = () => {
           />
         </LeftSection>
         <RightSection>
+          <ChatButton theme={theme} onClick={() => navigate(`/pdi/${id}/mindmap`)}>
+            <FiGitBranch size={20} />
+          </ChatButton>
           <ChatButton theme={theme} onClick={() => navigate(`/pdi/${id}/chat`)}>
             <FiMessageSquare size={20} />
           </ChatButton>
